@@ -3,6 +3,7 @@ Python API to scrape email for job application emails and synthesize all job app
 
 ConOps:
 1.	Retrieve Emails:
+2.	
     a.	Utilize Python library such as imaplib or poplib to retrieve and read emails.
 3.	Parse Emails:
   a.	Utilize Python libraries like email or email.parser to parse the email content and extract relevant information.
