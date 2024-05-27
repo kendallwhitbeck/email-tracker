@@ -18,6 +18,7 @@ Description:
             - Read and write to spreadsheet tracking job applications.
             - Ensure a given application process is not duplicated but rather updates the given entry if more than one email is found.
 """
+import sys
 import imaplib  # connect to email server
 import getpass  # get password securely
 import email.parser  # parse email
@@ -38,7 +39,7 @@ def get_email(email_account):
     imap.login(email_account, getpass.getpass())
 
     # Select inbox
-    imap.select("INBOX/iWillTeach")
+    imap.select("INBOX/iWillTeach")  # TODO fix this to be normal inbox
 
     # Search for emails
     typ, data = imap.search(None, "ALL")
@@ -46,9 +47,16 @@ def get_email(email_account):
     # Get email IDs
     email_ids = data[0].split()
 
-    # Iterate through email IDs
+    # Iterate through email IDs TODO temporary debug
+    count = 0
     for email_id in email_ids:
         print(f"email_id = {email_id}")
+        # TODO temporary terminal text saver
+        if count > 10:
+            print("...email_ids continue...")
+            break
+        count += 1
+    print(f"last email_id = {email_ids[-1]}")
 
 def parse_email(email):
     # body = email.parser("body")  # TODO
@@ -75,12 +83,12 @@ def update_job_app_spreadsheet(email, spreadsheet="job_app_data.csv"):
     Default value for spreadsheet is "data.csv" which will be created in CWD if it doesn't exist.
     """
 
-    # # Open spreadsheet TODO Not needed if using pandas?
+    # # Open spreadsheet TODO Not needed if using pandas with default spreadsheet path?
     # with open(spreadsheet, mode="w+") as fp:
     #     pass
 
     # Check to see if job_app_exists in spreadsheet by using job requisition number
-     # TODO
+     # TODO Implement this capability after basic function
 
     # Open spreadsheet as pandas dataframe
     job_app_dataframe = pd.read_csv(spreadsheet)
@@ -92,8 +100,6 @@ def update_job_app_spreadsheet(email, spreadsheet="job_app_data.csv"):
     # Save changes back to spreadsheet
     spreadsheet = job_app_dataframe.to_csv()
 
-    pass
-
 
 
 def main():
@@ -104,6 +110,9 @@ def main():
 
     print("get email...")
     get_email(email_account)
+
+    # Update the spreadsheet
+    # update_job_app_spreadsheet()
 
 if __name__ == "__main__":
     main()
