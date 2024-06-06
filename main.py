@@ -17,8 +17,8 @@ import api_passwords  # TODO remove from deliverable
 
 
 # Set OpenAI API key to enable use of ChatGPT API
-openai.api_key = api_passwords.openai()
-
+openai.api_key = api_passwords.openai()  # TODO update to use your API key
+useChatGPT = False  # TODO set true if you have an API key associated with a paid version of ChatGPT
 
 def get_email_subject(email_msg):
     # Extract subject line from email message
@@ -108,17 +108,23 @@ def is_job_application(email_msg):
     keywords = ["job", "application", "career"]
     for keyword in keywords:
         if keyword in subject.lower() or keyword in body.lower():
-            # Second, leverage ChatGPT API to fully determine if email is related to a job application.
-            print(f"Keyword match: {keyword} in subject or body. Asking ChatGPT if the email is a job application...")
-            prompt = f"Is this an email regarding a job application?\n\nSender: {sender_name} <{sender_addr}>\n\n.Subject: {subject}.\n\nBody: {body}."
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=prompt,
-                max_tokens=50
-            )
-            answer = response.choices[0].text.strip().lower()
-            if "yes" in answer:
-                return True
+            if useChatGPT:
+                # Second, leverage ChatGPT API to fully determine if email is related to a job application.
+                print(f"Keyword match: {keyword} in subject or body. Asking ChatGPT if the email is a job application...")
+                prompt = f"Is this an email regarding a job application?\n\nSender: {sender_name} <{sender_addr}>\n\n.Subject: {subject}.\n\nBody: {body}."
+                response = openai.Completion.create(
+                    # NOTE uncomment your preferred ChatGPT model ("engine")
+                    engine="gpt-3.5-turbo",
+                    # engine="gpt-3.5-turbo-instruct",
+                    # engine="gpt-4",
+                    # engine="/v1/models",
+                    prompt=prompt,
+                    max_tokens=50
+                )
+                answer = response.choices[0].text.strip().lower()
+                if "yes" in answer:
+                    return True
+            return True
     return False
 
 def extract_job_info(email_msg):
@@ -147,13 +153,15 @@ def main():
 
     # Connect to email server TODO should I modularize the email server connection code?
     imap = imaplib.IMAP4_SSL("imap.gmail.com")
-    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())
+    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())  # TODO update to use your API key
 
     # Select inbox
     status, messages = imap.select("INBOX")
 
     # Read emails back to certain date in format DD-Mon-YYYY
     date = "01-Nov-2023"  # TODO allow user to pass in date in format DD-Mon-YYYY
+    # search_criteria = f'(SINCE "{date}" BODY "job application status")'  # TODO update search to return emails that are shown when searching for {"job" application status}
+    # status, email_data = imap.uid('SEARCH', search_criteria)  # TODO update search to return emails that are shown when searching for {"job" application status}
     status, email_data = imap.search(None, f'SINCE {date}')
 
     # Parse emails to determine if each email is a job application
@@ -167,6 +175,9 @@ def main():
         # Fetch given email data from server using RFC 822 (standard email message) format.
         status, email_data = imap.fetch(email_id, "(RFC822)")
         if status == "OK":
+            if email_data[0] is None:
+                print(f"Error fetching email (email_id = {email_id}); skipping to next email.")
+                continue
             # Extract email message from email bytes data
             email_msg = email.message_from_bytes(email_data[0][1])
 
