@@ -3,6 +3,7 @@ Python API to scrape email for job application emails and synthesize all job app
 
 Usage:
 Download all files to same directory.
+# TODO won't work unless define api_passwords.py and sys.append of Downloads folder.
 Run main.py, e.g.:
     $ py main.py
 
