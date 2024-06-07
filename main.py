@@ -1,4 +1,4 @@
-# main2.py
+# main.py
 """
 This program:
     - reads emails dating back to a given date
@@ -12,13 +12,17 @@ import email
 # import email.parser
 import pandas
 import openai
-sys.path.append("C:/Users/kenda/Downloads")  # TODO remove from deliverable
-import api_passwords  # TODO remove from deliverable
 
+# Faciliate development by importing API passwords upon execution instead of typing them as user input.
+sys.path.append("C:/Users/kenda/Downloads")
+try:
+    import api_passwords
+except ImportError:
+    print("Error: api_passwords.py file not found.")
 
 # Set OpenAI API key to enable use of ChatGPT API
-openai.api_key = api_passwords.openai()  # TODO update to use your API key
-useChatGPT = False  # TODO set true if you have an API key associated with a paid version of ChatGPT
+openai.api_key = api_passwords.openai()  # NOTE to user: update to use your API key.
+USE_CHATGPT = False  # NOTE to user: set true if you have an API key associated with a paid version of ChatGPT
 
 def get_email_subject(email_msg):
     # Extract subject line from email message
@@ -33,7 +37,8 @@ def get_email_subject(email_msg):
     return subject
 
 def get_email_body(email_msg):
-    # Extract message body from email message
+    """ Extract message body from email message. """
+
     body = ""
     try:
         # Get email_id from email_msg for error logging.
@@ -50,7 +55,8 @@ def get_email_body(email_msg):
     return body
 
 def get_email_sender(email_msg):
-    # Extract sender from email message
+    """Extract sender from email message. """
+
     sender_str, sender_name, sender_addr = "", "", ""
     try:
         # Get email_id from email_msg for error logging.
@@ -64,7 +70,8 @@ def get_email_sender(email_msg):
     return sender_name, sender_addr
 
 def get_email_date_time(email_msg):
-    # Extract datetime from email message
+    """ Extract datetime from email message. """
+
     try:
         # Get email_id from email_msg for error logging.
         email_id = email_msg.get("Message-ID")
@@ -106,14 +113,15 @@ def is_job_application(email_msg):
 
     # First, filter email by keywords in subject or body to speed up processing.
     keywords = ["job", "application", "career"]
+    # keywords = ["job application", "open position"]  # TODO determine more specific keywords for job applications if not using ChatGPT
     for keyword in keywords:
         if keyword in subject.lower() or keyword in body.lower():
-            if useChatGPT:
+            if USE_CHATGPT:
                 # Second, leverage ChatGPT API to fully determine if email is related to a job application.
                 print(f"Keyword match: {keyword} in subject or body. Asking ChatGPT if the email is a job application...")
                 prompt = f"Is this an email regarding a job application?\n\nSender: {sender_name} <{sender_addr}>\n\n.Subject: {subject}.\n\nBody: {body}."
                 response = openai.Completion.create(
-                    # NOTE uncomment your preferred ChatGPT model ("engine")
+                    # NOTE to user: uncomment your preferred ChatGPT model ("engine")
                     engine="gpt-3.5-turbo",
                     # engine="gpt-3.5-turbo-instruct",
                     # engine="gpt-4",
@@ -136,15 +144,22 @@ def extract_job_info(email_msg):
     # Extract email info
     subject, body, sender_name, sender_addr, date_str, time_str = extract_email_info(email_msg)  # TODO make robust to changing order or attributes
 
-    # Extract job application information from email information
-    pass  # TODO
+    # Extract job application information from email information using ChatGPT API
+    application_num = "application_num"  # TODO temporary placeholder
+    company = sender_name  # TODO temporary placeholder
+    position = "position"  # TODO temporary placeholder
+    application_status = "application_status"  # TODO temporary placeholder
+    pass  # TODO implement ChatGPT API code to extract job application information
 
     # Return job application information as a tuple
     return (application_num, company, position, application_status, sender_name, subject, date_str, time_str)  # TODO make robust to changing order or attributes
 
 def main():
+    """ Main function to login to email server, collect and process emails, store job application information. """
+
     # Set debug mode
-    debug=True  # TODO set False before delivering
+    debug=True  # TODO use for development
+    # debug=False  # TODO use for full list
     if debug:
         dbg_lim = 50
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
@@ -152,23 +167,26 @@ def main():
               "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
     # Connect to email server TODO should I modularize the email server connection code?
-    imap = imaplib.IMAP4_SSL("imap.gmail.com")
-    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())  # TODO update to use your API key
+    imap = imaplib.IMAP4_SSL("imap.gmail.com")  # TODO: make robust to email server domain
+    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())  # NOTE to user: update to use your API key
 
     # Select inbox
     status, messages = imap.select("INBOX")
 
     # Read emails back to certain date in format DD-Mon-YYYY
     date = "01-Nov-2023"  # TODO allow user to pass in date in format DD-Mon-YYYY
+    # date = "23-May-2024"  # TODO allow user to pass in date in format DD-Mon-YYYY
     # search_criteria = f'(SINCE "{date}" BODY "job application status")'  # TODO update search to return emails that are shown when searching for {"job" application status}
     # status, email_data = imap.uid('SEARCH', search_criteria)  # TODO update search to return emails that are shown when searching for {"job" application status}
     status, email_data = imap.search(None, f'SINCE {date}')
 
-    # Parse emails to determine if each email is a job application
+    # Initialize email parsing variables.
     job_applications = []
     count = 0
     email_ids = email_data[0].split()
     progress_symbol = "%"
+
+    # Parse emails to determine if each email is a job application
     print(f"Processing {len(email_ids)} emails, one '{progress_symbol}' is ten emails...")
     for email_id in email_ids:
         count += 1
@@ -180,17 +198,9 @@ def main():
                 continue
             # Extract email message from email bytes data
             email_msg = email.message_from_bytes(email_data[0][1])
-
-            # TODO reinstate this try block?
-            # # Except any error that occurs while processing email due to the large scope of potential email invalidity errors.
-            # try:
-                # Check if email pertains to a job application
             if is_job_application(email_msg):
                 # Extract relevant job information from email and append to job_applications list.
                 job_applications.append(extract_job_info(email_msg))
-            # except:
-            #     print(f"Error processing email; email_id = {email_id}. Status = {status}.")
-
         else:
             print(f"Poor status of fetched email (email_id = {email_id}, status = {status}); skipping to next email.")
 
@@ -199,7 +209,7 @@ def main():
         if count % x == 0:
             print(f"{progress_symbol} ", end="")
 
-        # If debugging, stop after processing dbg_lim emails
+        # If debugging, stop after processing debug limit number of emails
         if debug:
             if count == dbg_lim:
                 print("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
@@ -217,6 +227,11 @@ def main():
         job_app_df.to_csv(file, index=True)  # TODO date is coming out as {"Day, D Mon"} and time is stored without quotes
     except PermissionError as e:
         print(f"Error storing job application information in a spreadsheet: {e}.\nENSURE THE FOLLOWING FILE IS CLOSED!\n----> {file} <----")
+
+    # Close connection to email server
+    imap.close()
+    imap.logout()
+    print("Done.")
 
 if __name__ == "__main__":
     main()
