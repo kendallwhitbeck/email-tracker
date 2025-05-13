@@ -10,7 +10,7 @@ Run main.py, e.g.:
 ConOps:
 
 Retrieve Emails:
-- Utilize Python library such as imaplib or poplib to retrieve and read emails.
+- Utilize Python library such as `imaplib` or `poplib` to retrieve and read emails.
 
 Parse Emails:
 - Utilize Python libraries like email or email.parser to parse the email content and extract relevant information.
