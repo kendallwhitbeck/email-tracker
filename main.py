@@ -13,7 +13,7 @@ import email
 import pandas
 import openai
 
-# Faciliate development by importing API passwords upon execution instead of typing them as user input.
+# Facilitate development by importing API passwords upon execution instead of typing them as user input.
 sys.path.append("C:/Users/kenda/Downloads")
 try:
     import api_passwords
@@ -22,7 +22,7 @@ except ImportError:
 
 # Set OpenAI API key to enable use of ChatGPT API
 openai.api_key = api_passwords.openai()  # NOTE to user: update to use your API key.
-USE_CHATGPT = False  # NOTE to user: set true if you have an API key associated with a paid version of ChatGPT
+USE_CHATGPT = False  # NOTE to user: set `True` if you have an API key associated with a paid version of ChatGPT
 
 def get_email_subject(email_msg):
     # Extract subject line from email message
@@ -168,10 +168,10 @@ def main():
 
     # Connect to email server TODO should I modularize the email server connection code?
     imap = imaplib.IMAP4_SSL("imap.gmail.com")  # TODO: make robust to email server domain
-    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())  # NOTE to user: update to use your API key
+    imap.login("kendallwhitbeck@gmail.com", api_passwords.gmail())  # NOTE to user: update to use your email address and API key
 
     # Select inbox
-    status, messages = imap.select("INBOX")
+    status, messages = imap.select("INBOX")  # TODO can probably update this to search specific `Labels` in gmail
 
     # Read emails back to certain date in format DD-Mon-YYYY
     date = "01-Nov-2023"  # TODO allow user to pass in date in format DD-Mon-YYYY
