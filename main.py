@@ -178,7 +178,7 @@ def main():
     # date = "23-May-2024"  # TODO allow user to pass in date in format DD-Mon-YYYY
     # search_criteria = f'(SINCE "{date}" BODY "job application status")'  # TODO update search to return emails that are shown when searching for {"job" application status}
     # status, email_data = imap.uid('SEARCH', search_criteria)  # TODO update search to return emails that are shown when searching for {"job" application status}
-    status, email_data = imap.search(None, f'SINCE {date}')
+    status, email_data = imap.search(None, f'SINCE {date}')  # NOTE will 'mark read' any matching email results.
 
     # Initialize email parsing variables.
     job_applications = []
